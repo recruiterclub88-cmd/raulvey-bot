@@ -46,10 +46,11 @@ export async function callGemini(args: {
     .join('\n');
 
   const prompt = [
-    'Ты отвечаешь ТОЛЬКО валидным JSON без текста вокруг.',
-    'JSON поля: reply (string, <= 350 символов), next_stage (string), lead_type ("unknown"|"candidate"|"agency"), need_link (boolean), stop (boolean), memory_update (string).',
-    'Нельзя повторять один и тот же вопрос, если ответ уже есть в summary/истории.',
-    'Один вопрос за сообщение.',
+    'Ты отвечаешь ТОЛЬКО валидным JSON.',
+    'ВАЖНО: Ответ должен быть ТОЛЬКО JSON объектом, без markdown блоков (без ```json ... ```).',
+    'Структура JSON: { "reply": "текст ответа", "next_stage": "название этапа", "lead_type": "unknown/candidate/agency", "need_link": false, "stop": false, "memory_update": "новая инфо" }',
+    'Не повторяй вопросы, на которые уже есть ответы в MEMORY_SUMMARY.',
+    'Если что-то непонятно - переспроси, но в поле reply.',
     '',
     'SYSTEM_PROMPT:',
     args.systemPrompt,
@@ -57,13 +58,13 @@ export async function callGemini(args: {
     'CURRENT_STAGE:',
     args.stage,
     '',
-    'MEMORY_SUMMARY:',
-    args.memory.summary || '',
+    'MEMORY_SUMMARY (информация о пользователе):',
+    args.memory.summary || '(нет информации)',
     '',
-    'RECENT_DIALOG:',
-    recentLines || '',
+    'RECENT_DIALOG (последние сообщения):',
+    recentLines || '(диалог пуст)',
     '',
-    'USER_MESSAGE:',
+    'USER_MESSAGE (новое сообщение):',
     args.userText,
   ].join('\n');
 
