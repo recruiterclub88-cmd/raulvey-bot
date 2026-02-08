@@ -22,7 +22,18 @@ const SYSTEM_FALLBACK: GeminiResult = {
   lead_type: 'unknown',
 };
 
-const DEFAULT_MODELS = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.5-flash-001', 'gemini-pro'];
+const DEFAULT_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-3-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-pro-latest',
+  'gemini-1.5-flash-latest',
+  'gemini-pro'
+];
+
+// Cache the last successful model to avoid retrying failed ones
+let cachedWorkingModel: string | null = null;
 
 export async function callGemini(args: {
   systemPrompt: string;
@@ -34,9 +45,14 @@ export async function callGemini(args: {
   if (!apiKey) throw new Error('GEMINI_API_KEY is missing');
 
   const envModel = process.env.GEMINI_MODEL;
-  const models = envModel
+  let models = envModel
     ? [envModel, ...DEFAULT_MODELS.filter(m => m !== envModel)]
     : DEFAULT_MODELS;
+
+  // If we have a cached working model, try it first
+  if (cachedWorkingModel && !envModel) {
+    models = [cachedWorkingModel, ...models.filter(m => m !== cachedWorkingModel)];
+  }
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -85,6 +101,12 @@ export async function callGemini(args: {
         continue; // Try next model if response is bad
       }
 
+      // Cache this model as working
+      if (cachedWorkingModel !== modelName) {
+        cachedWorkingModel = modelName;
+        console.log(`✅ [Gemini] Cached working model: ${modelName}`);
+      }
+
       const reply = String(parsed.reply).slice(0, 500);
       return {
         reply,
@@ -103,6 +125,7 @@ export async function callGemini(args: {
   }
 
   console.error('❌CRITICAL [Gemini] All models failed.');
+  cachedWorkingModel = null; // Reset cache if all failed
   return SYSTEM_FALLBACK;
 }
 
