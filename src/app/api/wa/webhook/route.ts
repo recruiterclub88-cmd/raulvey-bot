@@ -111,6 +111,18 @@ export async function POST(req: Request) {
 
 
     // dedup: try insert inbound message unique by provider_message_id
+    // CHECK FIRST if message already exists to avoid processing loop
+    const { data: existingMsg } = await supabaseAdmin
+      .from('messages')
+      .select('id')
+      .eq('provider_message_id', providerMessageId)
+      .maybeSingle();
+
+    if (existingMsg) {
+      console.log('ℹ️ [Webhook] Duplicate message found (pre-check), ignoring:', providerMessageId);
+      return NextResponse.json({ ok: true, dedup: true });
+    }
+
     const { error: inErr } = await supabaseAdmin.from('messages').insert({
       contact_id: contactId,
       direction: 'in',
@@ -121,7 +133,7 @@ export async function POST(req: Request) {
     if (inErr) {
       // if duplicate, just ignore
       if (String(inErr.message || '').toLowerCase().includes('duplicate')) {
-        console.log('ℹ️ [Webhook] Duplicate message ignored');
+        console.log('ℹ️ [Webhook] Duplicate message ignored (insert-time)');
         return NextResponse.json({ ok: true, dedup: true });
       }
       console.error('⚠️ [Webhook] Message Insert Error:', inErr);
