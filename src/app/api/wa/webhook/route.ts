@@ -67,6 +67,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, ignored: true });
     }
 
+    // 1. Check Webhook Type
+    const typeWebhook = body.typeWebhook;
+    if (typeWebhook !== 'incomingMessageReceived') {
+      console.log(`ℹ️ [Webhook] Ignored non-message type: ${typeWebhook}`);
+      return NextResponse.json({ ok: true, ignored: true });
+    }
+
+    // 2. Check Sender (Ignore Self)
+    const senderData = body.senderData || {};
+    const senderId = senderData.sender;
+    const instanceData = body.instanceData || {};
+    const myWid = instanceData.wid;
+
+    if (senderId === myWid) {
+      console.log('ℹ️ [Webhook] Ignored own message');
+      return NextResponse.json({ ok: true, ignored: true });
+    }
+
     console.log('✅ [Webhook] Parsed:', parsed);
     const chatId = parsed.chatId;
     const providerMessageId = parsed.messageId;
