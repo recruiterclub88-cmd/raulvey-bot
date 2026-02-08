@@ -19,7 +19,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from('settings')
       .select('key,value')
-      .in('key', ['system_prompt', 'site_url', 'candidate_link', 'agency_link', 'tone']);
+      .in('key', ['system_prompt', 'site_url', 'candidate_link', 'agency_link', 'tone', 'admin_phone', 'followup_enabled', 'followup_delay_hours', 'followup_message']);
 
     console.log('[Settings API] Supabase response:', {
       hasData: !!data,
@@ -46,6 +46,10 @@ export async function GET() {
       candidate_link: map.candidate_link || '',
       agency_link: map.agency_link || '',
       tone: map.tone || '',
+      admin_phone: map.admin_phone || '',
+      followup_enabled: map.followup_enabled === 'true',
+      followup_delay_hours: parseInt(map.followup_delay_hours || '24'),
+      followup_message: map.followup_message || '',
     });
   } catch (e: any) {
     console.error('[Settings API GET] Error:', e);
@@ -64,6 +68,10 @@ export async function POST(req: Request) {
       ['candidate_link', String(body.candidate_link || '')],
       ['agency_link', String(body.agency_link || '')],
       ['tone', String(body.tone || '')],
+      ['admin_phone', String(body.admin_phone || '')],
+      ['followup_enabled', String(body.followup_enabled || false)],
+      ['followup_delay_hours', String(body.followup_delay_hours || 24)],
+      ['followup_message', String(body.followup_message || '')],
     ].map(([key, value]) => ({ key, value }));
 
     const { error } = await supabaseAdmin.from('settings').upsert(upserts, { onConflict: 'key' });

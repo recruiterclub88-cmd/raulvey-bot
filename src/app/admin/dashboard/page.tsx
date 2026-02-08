@@ -8,6 +8,10 @@ type Settings = {
     candidate_link: string;
     agency_link: string;
     tone: string;
+    admin_phone: string;
+    followup_enabled: boolean;
+    followup_delay_hours: number;
+    followup_message: string;
 };
 
 export default function AdminDashboard() {
@@ -17,6 +21,10 @@ export default function AdminDashboard() {
         candidate_link: '',
         agency_link: '',
         tone: '',
+        admin_phone: '',
+        followup_enabled: false,
+        followup_delay_hours: 24,
+        followup_message: '',
     });
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -235,6 +243,105 @@ export default function AdminDashboard() {
                             onFocus={(e) => e.target.style.borderColor = '#667eea'}
                             onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                         />
+                    </div>
+
+                    <div style={{ marginBottom: '32px', paddingTop: '24px', borderTop: '2px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px', color: '#2d3748' }}>
+                            📱 Уведомления администратора
+                        </h3>
+                        <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
+                            Номер телефона администратора
+                        </label>
+                        <input
+                            type="tel"
+                            placeholder="380668114800"
+                            value={settings.admin_phone}
+                            onChange={(e) => setSettings({ ...settings, admin_phone: e.target.value.replace(/\D/g, '') })}
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '2px solid #e2e8f0',
+                                borderRadius: '8px',
+                                fontSize: '15px',
+                                outline: 'none',
+                                boxSizing: 'border-box'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                            onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                        />
+                        <p style={{ fontSize: '13px', color: '#718096', marginTop: '6px' }}>
+                            Только цифры, без + и пробелов (например: 380668114800)
+                        </p>
+                    </div>
+
+                    <div style={{ marginBottom: '32px', paddingTop: '24px', borderTop: '2px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px', color: '#2d3748' }}>
+                            ⏰ Автоматические напоминания
+                        </h3>
+
+                        <label style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={settings.followup_enabled}
+                                onChange={(e) => setSettings({ ...settings, followup_enabled: e.target.checked })}
+                                style={{ width: '20px', height: '20px', marginRight: '10px', cursor: 'pointer' }}
+                            />
+                            <span style={{ fontWeight: '600', color: '#2d3748' }}>Включить автоматические напоминания</span>
+                        </label>
+
+                        {settings.followup_enabled && (
+                            <>
+                                <div style={{ marginBottom: '16px' }}>
+                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
+                                        Отправлять через:
+                                    </label>
+                                    <select
+                                        value={settings.followup_delay_hours}
+                                        onChange={(e) => setSettings({ ...settings, followup_delay_hours: parseInt(e.target.value) })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            border: '2px solid #e2e8f0',
+                                            borderRadius: '8px',
+                                            fontSize: '15px',
+                                            outline: 'none',
+                                            boxSizing: 'border-box',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <option value="12">12 часов</option>
+                                        <option value="24">24 часа (1 день)</option>
+                                        <option value="36">36 часов</option>
+                                        <option value="48">48 часов (2 дня)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
+                                        Текст напоминания
+                                    </label>
+                                    <textarea
+                                        value={settings.followup_message}
+                                        onChange={(e) => setSettings({ ...settings, followup_message: e.target.value })}
+                                        rows={4}
+                                        placeholder="Привет! Я хотел напомнить о себе..."
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 16px',
+                                            border: '2px solid #e2e8f0',
+                                            borderRadius: '8px',
+                                            fontSize: '15px',
+                                            fontFamily: 'inherit',
+                                            resize: 'vertical',
+                                            outline: 'none',
+                                            boxSizing: 'border-box'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                                        onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <button

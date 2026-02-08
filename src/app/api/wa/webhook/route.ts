@@ -110,6 +110,7 @@ export async function POST(req: Request) {
     }
 
     let contact = contactRow;
+    const isNewContact = !contact;
     if (!contact) {
       const { data: inserted, error } = await supabaseAdmin
         .from('contacts')
@@ -162,7 +163,7 @@ export async function POST(req: Request) {
     const { data: settingsRows, error: settingsError } = await supabaseAdmin
       .from('settings')
       .select('key, value')
-      .in('key', ['system_prompt', 'site_url', 'candidate_link', 'agency_link', 'tone']);
+      .in('key', ['system_prompt', 'site_url', 'candidate_link', 'agency_link', 'tone', 'admin_phone', 'followup_enabled', 'followup_delay_hours', 'followup_message']);
 
     if (settingsError) {
       console.error('❌ [Webhook] Settings Fetch Error:', settingsError);
@@ -177,6 +178,10 @@ export async function POST(req: Request) {
     const candidateLink = settings['candidate_link'] || '';
     const agencyLink = settings['agency_link'] || '';
     const tone = settings['tone'] || '';
+    const adminPhone = settings['admin_phone'] || '';
+    const followupEnabled = settings['followup_enabled'] === 'true';
+    const followupDelayHours = parseInt(settings['followup_delay_hours'] || '24');
+    const followupMessage = settings['followup_message'] || '';
 
 
     const stage = contact.stage || 'start';
@@ -249,6 +254,33 @@ export async function POST(req: Request) {
       lead_type: ai.lead_type || 'unknown',
       updated_at: new Date().toISOString(),
     }).eq('id', contactId);
+
+    // Send admin notification for new contacts
+    if (isNewContact && adminPhone) {
+      try {
+        const senderName = parsed.chatId.split('@')[0];
+        const adminNotification = `🆕 Новый пользователь!\n\n📱 Номер: +${senderName}\n📝 Первое сообщение: "${userText}"`;
+        console.log('📤 [Webhook] Sending admin notification to:', adminPhone);
+        await greenSendMessage(adminPhone + '@c.us', adminNotification);
+      } catch (e: any) {
+        console.error('⚠️ [Webhook] Admin notification failed:', e.message);
+      }
+    }
+
+    // Schedule follow-up message for new contacts
+    if (isNewContact && followupEnabled && followupMessage) {
+      try {
+        const scheduledAt = new Date(Date.now() + followupDelayHours * 60 * 60 * 1000);
+        await supabaseAdmin.from('scheduled_messages').insert({
+          contact_id: contactId,
+          message_text: followupMessage,
+          scheduled_at: scheduledAt.toISOString(),
+        });
+        console.log(`📅 [Webhook] Scheduled follow-up for contact ${contactId} at ${scheduledAt.toISOString()}`);
+      } catch (e: any) {
+        console.error('⚠️ [Webhook] Follow-up scheduling failed:', e.message);
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {
