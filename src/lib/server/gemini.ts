@@ -22,18 +22,23 @@ const SYSTEM_FALLBACK: GeminiResult = {
   lead_type: 'unknown',
 };
 
+const DEFAULT_MODELS = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.5-flash-001', 'gemini-pro'];
+
 export async function callGemini(args: {
   systemPrompt: string;
   userText: string;
   memory: { summary: string; recent: { direction: 'in' | 'out'; text: string }[] };
   stage: string;
 }): Promise<GeminiResult> {
-  // DIAGNOSTIC HARDCODE TEST
   const apiKey = process.env.GEMINI_API_KEY || '';
   if (!apiKey) throw new Error('GEMINI_API_KEY is missing');
-  const modelName = 'gemini-1.5-flash'; // Downgraded from 2.0 due to quota/429
+
+  const envModel = process.env.GEMINI_MODEL;
+  const models = envModel
+    ? [envModel, ...DEFAULT_MODELS.filter(m => m !== envModel)]
+    : DEFAULT_MODELS;
+
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: modelName });
 
   const recentLines = args.memory.recent
     .slice(-12)
@@ -62,26 +67,42 @@ export async function callGemini(args: {
     args.userText,
   ].join('\n');
 
-  const result = await model.generateContent(prompt);
-  const raw = result.response.text().trim();
+  let lastError = null;
 
-  // Extract JSON if model wrapped it.
-  const jsonText = extractJson(raw);
-  try {
-    const parsed = JSON.parse(jsonText);
-    if (!parsed || typeof parsed.reply !== 'string' || !parsed.reply.trim()) return SYSTEM_FALLBACK;
-    const reply = String(parsed.reply).slice(0, 500);
-    return {
-      reply,
-      next_stage: typeof parsed.next_stage === 'string' ? parsed.next_stage : undefined,
-      lead_type: ['unknown', 'candidate', 'agency'].includes(parsed.lead_type) ? parsed.lead_type : 'unknown',
-      need_link: typeof parsed.need_link === 'boolean' ? parsed.need_link : undefined,
-      stop: typeof parsed.stop === 'boolean' ? parsed.stop : undefined,
-      memory_update: typeof parsed.memory_update === 'string' ? parsed.memory_update.slice(0, 2000) : undefined,
-    };
-  } catch {
-    return SYSTEM_FALLBACK;
+  for (const modelName of models) {
+    try {
+      console.log(`🤖 [Gemini] Trying model: ${modelName}...`);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const raw = result.response.text().trim();
+
+      const jsonText = extractJson(raw);
+      const parsed = JSON.parse(jsonText);
+
+      if (!parsed || typeof parsed.reply !== 'string' || !parsed.reply.trim()) {
+        console.warn(`⚠️ [Gemini] Model ${modelName} returned invalid JSON, skipping...`);
+        continue; // Try next model if response is bad
+      }
+
+      const reply = String(parsed.reply).slice(0, 500);
+      return {
+        reply,
+        next_stage: typeof parsed.next_stage === 'string' ? parsed.next_stage : undefined,
+        lead_type: ['unknown', 'candidate', 'agency'].includes(parsed.lead_type) ? parsed.lead_type : 'unknown',
+        need_link: typeof parsed.need_link === 'boolean' ? parsed.need_link : undefined,
+        stop: typeof parsed.stop === 'boolean' ? parsed.stop : undefined,
+        memory_update: typeof parsed.memory_update === 'string' ? parsed.memory_update.slice(0, 2000) : undefined,
+      };
+
+    } catch (e: any) {
+      console.error(`❌ [Gemini] Model ${modelName} failed:`, e.message);
+      lastError = e;
+      // Continue to next model
+    }
   }
+
+  console.error('❌CRITICAL [Gemini] All models failed.');
+  return SYSTEM_FALLBACK;
 }
 
 function extractJson(s: string): string {
