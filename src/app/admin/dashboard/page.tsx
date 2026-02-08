@@ -298,7 +298,7 @@ export default function AdminDashboard() {
                                         {new Date(msg.created_at).toLocaleString('uk-UA')}
                                     </div>
                                     <div style={{ fontSize: '14px', color: '#2d3748', fontFamily: 'monospace' }}>
-                                        <strong>{msg.role}:</strong> {msg.content}
+                                        <strong>{msg.direction === 'in' ? '👤 User:' : '🤖 Bot:'}</strong> {msg.text || msg.content}
                                     </div>
                                 </div>
                             ))}

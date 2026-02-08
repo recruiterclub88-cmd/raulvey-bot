@@ -29,7 +29,7 @@ export async function callGemini(args: {
   stage: string;
 }): Promise<GeminiResult> {
   // DIAGNOSTIC HARDCODE TEST
-  const apiKey = 'AIzaSyD9sFGXqqNAjnIIm2MOPv_Z92frsW3uRW0';
+  const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyD9sFGXqqNAjnIIm2MOPv_Z92frsW3uRW0';
   const modelName = 'gemini-2.0-flash'; // Updated from unavailable gemini-1.5-flash
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });

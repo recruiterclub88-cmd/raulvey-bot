@@ -5,10 +5,9 @@ type GreenApiConfig = {
 };
 
 function getGreenApiConfig(): GreenApiConfig {
-  // DIAGNOSTIC HARDCODE TEST
-  const baseUrl = 'https://7105.api.greenapi.com';
-  const idInstance = '7105475055';
-  const apiTokenInstance = 'b1a61afc4dce4282997b9a6ce386255a696b16ee244d4d36ac';
+  const baseUrl = process.env.GREEN_API_BASE_URL || 'https://7105.api.greenapi.com';
+  const idInstance = process.env.GREEN_API_ID_INSTANCE || '7105475055';
+  const apiTokenInstance = process.env.GREEN_API_TOKEN || 'b1a61afc4dce4282997b9a6ce386255a696b16ee244d4d36ac';
 
   return { baseUrl, idInstance, apiTokenInstance };
 }
