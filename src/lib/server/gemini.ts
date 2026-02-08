@@ -29,8 +29,9 @@ export async function callGemini(args: {
   stage: string;
 }): Promise<GeminiResult> {
   // DIAGNOSTIC HARDCODE TEST
-  const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyD9sFGXqqNAjnIIm2MOPv_Z92frsW3uRW0';
-  const modelName = 'gemini-2.0-flash'; // Updated from unavailable gemini-1.5-flash
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  if (!apiKey) throw new Error('GEMINI_API_KEY is missing');
+  const modelName = 'gemini-1.5-flash'; // Downgraded from 2.0 due to quota/429
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: modelName });
 

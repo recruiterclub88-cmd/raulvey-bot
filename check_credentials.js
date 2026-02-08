@@ -2,8 +2,8 @@
 
 // CREDENTIALS (ENV or HARDCODED FALLBACK)
 const supabaseUrl = process.env.SUPABASE_URL || 'https://zrctubjaqyyhtiumdtau.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_secret_mVTgwJkcXOWrFC9KhqNCcg_WLVf1nVA';
-const geminiKey = process.env.GEMINI_API_KEY || 'AIzaSyD9sFGXqqNAjnIIm2MOPv_Z92frsW3uRW0';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const geminiKey = process.env.GEMINI_API_KEY || '';
 const greenApiUrl = process.env.GREEN_API_BASE_URL || 'https://7105.api.greenapi.com';
 const greenId = process.env.GREEN_API_ID_INSTANCE || '7105475055';
 const greenToken = process.env.GREEN_API_TOKEN || 'b1a61afc4dce4282997b9a6ce386255a696b16ee244d4d36ac';
