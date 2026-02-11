@@ -8,8 +8,12 @@ const { createClient } = require('@supabase/supabase-js');
 
 const logger = pino({ level: 'info' });
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Hardcoded fallbacks from src/lib/server/db.ts
+const SUPABASE_URL_FALLBACK = 'https://zrctubjaqyyhtiumdtau.supabase.co';
+const SUPABASE_KEY_FALLBACK = 'sb_secret_mVTgwJkcXOWrFC9KhqNCcg_WLVf1nVA';
+
+const supabaseUrl = process.env.SUPABASE_URL || SUPABASE_URL_FALLBACK;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_KEY_FALLBACK;
 
 if (!supabaseUrl || !supabaseKey) {
     console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
