@@ -44,6 +44,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy worker script and start script
 COPY --from=builder --chown=nextjs:nodejs /app/worker.mjs ./
+COPY --from=builder --chown=nextjs:nodejs /app/baileys-worker.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/baileys-auth-standalone.js ./
 COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./
 RUN chmod +x start.sh
 
