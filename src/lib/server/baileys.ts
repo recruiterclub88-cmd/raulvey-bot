@@ -59,7 +59,6 @@ export async function startBaileys() {
         logger,
         browser: ['Recruiter Bot', 'Chrome', '1.0.0'],
     });
-    */
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -224,4 +223,5 @@ export async function startBaileys() {
             }
         }
     });
+    */
 }
