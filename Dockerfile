@@ -46,8 +46,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/worker.mjs ./
 COPY --from=builder --chown=nextjs:nodejs /app/baileys-worker.js ./
 COPY --from=builder --chown=nextjs:nodejs /app/baileys-auth-standalone.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./
 RUN chmod +x start.sh
+
+# Install worker dependencies (Baileys needs native modules)
+RUN npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil
 
 USER nextjs
 
