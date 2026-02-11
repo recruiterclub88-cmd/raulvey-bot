@@ -5,4 +5,4 @@
 node server.js &
 
 # Start Baileys worker in foreground
-node worker.mjs
+node baileys-worker.js
