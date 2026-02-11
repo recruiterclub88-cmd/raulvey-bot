@@ -45,6 +45,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Copy worker script and start script
 COPY --from=builder --chown=nextjs:nodejs /app/worker.mjs ./
 COPY --from=builder --chown=nextjs:nodejs /app/baileys-worker.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/gemini-worker.js ./
 COPY --from=builder --chown=nextjs:nodejs /app/baileys-auth-standalone.js ./
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./
@@ -52,7 +53,7 @@ RUN chmod +x start.sh
 
 # Install git (needed for npm install) and worker dependencies
 RUN apk add --no-cache git && \
-    npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil qrcode-terminal
+    npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil qrcode-terminal @google/generative-ai
 
 USER nextjs
 
