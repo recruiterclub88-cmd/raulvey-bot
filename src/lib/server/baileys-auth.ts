@@ -1,4 +1,4 @@
-import { AuthenticationCreds, AuthenticationState, BufferJSON, proto } from '@whiskeysockets/baileys';
+import { AuthenticationCreds, AuthenticationState, BufferJSON, proto, initAuthCreds } from '@whiskeysockets/baileys';
 import { supabaseAdmin } from './db';
 
 export const useSupabaseAuthState = async (sessionId: string): Promise<{ state: AuthenticationState; saveCreds: () => Promise<void> }> => {
@@ -27,7 +27,7 @@ export const useSupabaseAuthState = async (sessionId: string): Promise<{ state: 
         await supabaseAdmin.from('wa_sessions').delete().eq('id', `${sessionId}:${id}`);
     };
 
-    const creds: AuthenticationCreds = (await readData('creds')) || (await AuthenticationCreds.init());
+    const creds: AuthenticationCreds = (await readData('creds')) || initAuthCreds();
 
     return {
         state: {
