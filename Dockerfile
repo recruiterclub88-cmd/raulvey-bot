@@ -50,8 +50,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./
 RUN chmod +x start.sh
 
-# Install worker dependencies (Baileys needs native modules)
-RUN npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil
+# Install git (needed for npm install) and worker dependencies
+RUN apk add --no-cache git && \
+    npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil
 
 USER nextjs
 
