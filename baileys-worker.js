@@ -5,6 +5,7 @@ const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const { useSupabaseAuthState } = require('./baileys-auth-standalone.js');
 const { createClient } = require('@supabase/supabase-js');
+const qrcode = require('qrcode-terminal');
 
 const logger = pino({ level: 'info' });
 
@@ -39,6 +40,8 @@ async function startBaileys() {
         const { connection, lastDisconnect, qr } = update;
         if (qr) {
             console.log('💠 [Baileys] QR-код для сканирования:');
+            qrcode.generate(qr, { small: true });
+            console.log('Строка для ручного копирования (на всякий случай):');
             console.log(qr);
         }
         if (connection === 'close') {

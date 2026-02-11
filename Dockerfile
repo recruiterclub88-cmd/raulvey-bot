@@ -52,7 +52,7 @@ RUN chmod +x start.sh
 
 # Install git (needed for npm install) and worker dependencies
 RUN apk add --no-cache git && \
-    npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil
+    npm install --omit=dev @whiskeysockets/baileys @hapi/boom pino @supabase/supabase-js bufferutil qrcode-terminal
 
 USER nextjs
 
