@@ -47,6 +47,9 @@ async function pollScheduledMessages(sock: any) {
 const logger = pino({ level: 'info' });
 
 export async function startBaileys() {
+    console.log('🚫 [Baileys] Main app logic DISABLED. Use standalone worker instead.');
+    return;
+    /*
     const { state, saveCreds } = await useSupabaseAuthState('main-session');
     const { version } = await fetchLatestBaileysVersion();
 
@@ -56,6 +59,7 @@ export async function startBaileys() {
         logger,
         browser: ['Recruiter Bot', 'Chrome', '1.0.0'],
     });
+    */
 
     sock.ev.on('creds.update', saveCreds);
 
