@@ -289,59 +289,59 @@ export default function AdminDashboard() {
                             <span style={{ fontWeight: '600', color: '#2d3748' }}>Включить автоматические напоминания</span>
                         </label>
 
-                        {settings.followup_enabled && (
-                            <>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
-                                        Отправлять через:
-                                    </label>
-                                    <select
-                                        value={settings.followup_delay_hours}
-                                        onChange={(e) => setSettings({ ...settings, followup_delay_hours: parseInt(e.target.value) })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px 16px',
-                                            border: '2px solid #e2e8f0',
-                                            borderRadius: '8px',
-                                            fontSize: '15px',
-                                            outline: 'none',
-                                            boxSizing: 'border-box',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <option value="12">12 часов</option>
-                                        <option value="24">24 часа (1 день)</option>
-                                        <option value="36">36 часов</option>
-                                        <option value="48">48 часов (2 дня)</option>
-                                    </select>
-                                </div>
+                        <div style={{ marginBottom: '16px', opacity: settings.followup_enabled ? 1 : 0.5, pointerEvents: settings.followup_enabled ? 'auto' : 'none' }}>
+                            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
+                                Отправлять через:
+                            </label>
+                            <select
+                                value={settings.followup_delay_hours}
+                                onChange={(e) => setSettings({ ...settings, followup_delay_hours: parseInt(e.target.value) })}
+                                disabled={!settings.followup_enabled}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '2px solid #e2e8f0',
+                                    borderRadius: '8px',
+                                    fontSize: '15px',
+                                    outline: 'none',
+                                    boxSizing: 'border-box',
+                                    cursor: settings.followup_enabled ? 'pointer' : 'not-allowed',
+                                    backgroundColor: settings.followup_enabled ? 'white' : '#f7fafc'
+                                }}
+                            >
+                                <option value="12">12 часов</option>
+                                <option value="24">24 часа (1 день)</option>
+                                <option value="36">36 часов</option>
+                                <option value="48">48 часов (2 дня)</option>
+                            </select>
+                        </div>
 
-                                <div>
-                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
-                                        Текст напоминания
-                                    </label>
-                                    <textarea
-                                        value={settings.followup_message}
-                                        onChange={(e) => setSettings({ ...settings, followup_message: e.target.value })}
-                                        rows={4}
-                                        placeholder="Привет! Я хотел напомнить о себе..."
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px 16px',
-                                            border: '2px solid #e2e8f0',
-                                            borderRadius: '8px',
-                                            fontSize: '15px',
-                                            fontFamily: 'inherit',
-                                            resize: 'vertical',
-                                            outline: 'none',
-                                            boxSizing: 'border-box'
-                                        }}
-                                        onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                        onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-                                    />
-                                </div>
-                            </>
-                        )}
+                        <div style={{ opacity: settings.followup_enabled ? 1 : 0.5, pointerEvents: settings.followup_enabled ? 'auto' : 'none' }}>
+                            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#2d3748' }}>
+                                Текст напоминания
+                            </label>
+                            <textarea
+                                value={settings.followup_message}
+                                onChange={(e) => setSettings({ ...settings, followup_message: e.target.value })}
+                                disabled={!settings.followup_enabled}
+                                rows={4}
+                                placeholder="Привет! Я хотел напомнить о себе..."
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '2px solid #e2e8f0',
+                                    borderRadius: '8px',
+                                    fontSize: '15px',
+                                    fontFamily: 'inherit',
+                                    resize: 'vertical',
+                                    outline: 'none',
+                                    boxSizing: 'border-box',
+                                    backgroundColor: settings.followup_enabled ? 'white' : '#f7fafc'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                            />
+                        </div>
                     </div>
 
                     <button
