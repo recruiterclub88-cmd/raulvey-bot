@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "worker": "node worker.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -16,7 +17,8 @@
     "@whiskeysockets/baileys": "^6.6.0",
     "pino": "^9.0.0",
     "qrcode-terminal": "^0.12.0",
-    "@hapi/boom": "^10.0.1"
+    "@hapi/boom": "^10.0.1",
+    "bufferutil": "^4.0.8"
   },
   "devDependencies": {
     "@types/node": "^20",

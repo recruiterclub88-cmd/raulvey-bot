@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
+import makeWASocket, { DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import { useSupabaseAuthState } from './baileys-auth';
@@ -52,7 +52,6 @@ export async function startBaileys() {
 
     const sock = makeWASocket({
         version,
-        printQRInTerminal: true,
         auth: state,
         logger,
         browser: ['Recruiter Bot', 'Chrome', '1.0.0'],
@@ -60,7 +59,7 @@ export async function startBaileys() {
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', (update) => {
+    sock.ev.on('connection.update', (update: any) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) {
             console.log('💠 [Baileys] Новый QR-код готов! Отсканируйте в логах Railway.');
@@ -75,7 +74,7 @@ export async function startBaileys() {
         }
     });
 
-    sock.ev.on('messages.upsert', async (m) => {
+    sock.ev.on('messages.upsert', async (m: any) => {
         if (m.type !== 'notify') return;
 
         for (const msg of m.messages) {
