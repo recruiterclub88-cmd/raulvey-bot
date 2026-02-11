@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const DEFAULT_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+// Используем версии 2026 года, указанные пользователем
+const DEFAULT_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-3.0-pro-preview'];
 let cachedWorkingModel = null;
 
 async function callGemini(args) {
