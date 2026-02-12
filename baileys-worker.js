@@ -44,6 +44,11 @@ function hasOptOut(text) {
     return opts.some(o => text.includes(o));
 }
 
+function hasOptIn(text) {
+    const opts = ['старт', 'start', 'go', 'поехали', 'привет', 'hi', 'hello'];
+    return opts.some(o => text.includes(o));
+}
+
 // Polling for scheduled messages
 let isPolling = false;
 async function pollScheduledMessages(sock, supabase) {
@@ -72,7 +77,6 @@ async function pollScheduledMessages(sock, supabase) {
                             console.log(`✅ [Baileys Worker] Отправлено запланированное сообщение для ${contact.wa_chat_id}`);
                         } catch (sendErr) {
                             console.error(`❌ [Baileys Worker] Ошибка отправки: ${sendErr.message}`);
-                            // Wait a bit before retrying or continue
                         }
                     } else {
                         await supabase.from('scheduled_messages').update({ status: 'failed' }).eq('id', msg.id);
@@ -143,6 +147,13 @@ async function startBaileys() {
             console.log(`📬 [Baileys] Сообщение от ${chatId}: ${rawText}`);
 
             try {
+                // 0. Opt-in check (restore if previously opted out)
+                if (hasOptIn(userText)) {
+                    console.log(`✅ [Baileys] Opt-in detected for ${chatId}`);
+                    await supabase.from('contacts').update({ opt_out: false }).eq('wa_chat_id', chatId);
+                    // We need to re-fetch the contact to see the updated status
+                }
+
                 // 1. Opt-out check
                 if (hasOptOut(userText)) {
                     console.log(`🚫 [Baileys] Opt-out detected for ${chatId}`);
@@ -183,7 +194,14 @@ async function startBaileys() {
 
                 console.log(`✅ [Baileys] Contact ready: ${contact.id} (Stage: ${contact.stage})`);
 
-                // 3. Store message
+                // 3. Deduplication: Check if message already exists
+                const { data: existingMsg } = await supabase.from('messages').select('id').eq('provider_message_id', msg.key.id).maybeSingle();
+                if (existingMsg) {
+                    console.log(`⚠️ [Baileys] Message ${msg.key.id} already processed (found in DB). Skipping.`);
+                    continue;
+                }
+
+                // 4. Store message
                 const { error: msgError } = await supabase.from('messages').insert({
                     contact_id: contact.id,
                     direction: 'in',
@@ -191,7 +209,14 @@ async function startBaileys() {
                     text: rawText
                 });
 
-                if (msgError) console.error(`⚠️ [Baileys] Message save error:`, msgError);
+                if (msgError) {
+                    // Check for unique violation (Postgres code 23505)
+                    if (msgError.code === '23505' || msgError.message?.includes('duplicate key')) {
+                        console.log(`⚠️ [Baileys] Message ${msg.key.id} already processed (insert conflict). Skipping.`);
+                        continue;
+                    }
+                    console.error(`⚠️ [Baileys] Message save error:`, msgError);
+                }
 
                 // 4. Load settings
                 const { data: settingsRows } = await supabase.from('settings').select('key, value');
