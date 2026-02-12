@@ -145,28 +145,53 @@ async function startBaileys() {
             try {
                 // 1. Opt-out check
                 if (hasOptOut(userText)) {
+                    console.log(`🚫 [Baileys] Opt-out detected for ${chatId}`);
                     await supabase.from('contacts').upsert({ wa_chat_id: chatId, opt_out: true, updated_at: new Date().toISOString() }, { onConflict: 'wa_chat_id' });
                     continue;
                 }
 
                 // 2. Get/Create Contact
-                let { data: contact } = await supabase.from('contacts').select('*').eq('wa_chat_id', chatId).maybeSingle();
+                console.log(`🔍 [Baileys] Looking up contact for ${chatId}...`);
+                let { data: contact, error: fetchError } = await supabase.from('contacts').select('*').eq('wa_chat_id', chatId).maybeSingle();
+
+                if (fetchError) {
+                    console.error(`❌ [Baileys] Contact fetch error:`, fetchError);
+                }
+
                 const isNewContact = !contact;
 
                 if (!contact) {
-                    const { data: inserted } = await supabase.from('contacts').insert({ wa_chat_id: chatId, stage: 'start' }).select('*').single();
-                    contact = inserted;
-                } else if (contact.opt_out) continue;
+                    console.log(`🆕 [Baileys] Creating new contact for ${chatId}...`);
+                    const { data: inserted, error: insertError } = await supabase.from('contacts').insert({ wa_chat_id: chatId, stage: 'start' }).select('*').single();
+                    if (insertError) {
+                        console.error(`❌ [Baileys] Contact insert error:`, insertError);
+                        // Try to fetch again in case of race condition
+                        let { data: retryContact } = await supabase.from('contacts').select('*').eq('wa_chat_id', chatId).maybeSingle();
+                        contact = retryContact;
+                    } else {
+                        contact = inserted;
+                    }
+                } else if (contact.opt_out) {
+                    console.log(`🚫 [Baileys] Contact ${chatId} has opted out.`);
+                    continue;
+                }
 
-                if (!contact) continue;
+                if (!contact) {
+                    console.error(`❌ [Baileys] Failed to get or create contact for ${chatId}. Skipping.`);
+                    continue;
+                }
+
+                console.log(`✅ [Baileys] Contact ready: ${contact.id} (Stage: ${contact.stage})`);
 
                 // 3. Store message
-                await supabase.from('messages').insert({
+                const { error: msgError } = await supabase.from('messages').insert({
                     contact_id: contact.id,
                     direction: 'in',
                     provider_message_id: msg.key.id,
                     text: rawText
                 });
+
+                if (msgError) console.error(`⚠️ [Baileys] Message save error:`, msgError);
 
                 // 4. Load settings
                 const { data: settingsRows } = await supabase.from('settings').select('key, value');
