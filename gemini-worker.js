@@ -1,8 +1,14 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Используем стабильную версию 1.5 Flash (высокие лимиты)
-const DEFAULT_MODELS = ['gemini-1.5-flash'];
-let cachedWorkingModel = null;
+// Порядок: от самых стабильных к менее стабильным (по запросу пользователя)
+const DEFAULT_MODELS = [
+    'gemini-1.5-flash-latest',      // Основная, самая стабильная
+    'gemini-1.5-flash-8b-latest',   // Быстрая замена
+    'gemini-2.0-flash',             // Современная, высокая стабильность
+    'gemini-1.5-pro-latest',        // Стабильная, но низкий лимит
+    'gemini-2.5-flash-lite',        // Новая, быстрая (резерв)
+    'gemini-2.5-flash'              // Мощная новинка (последний вариант)
+]; let cachedWorkingModel = null;
 
 async function callGemini(args) {
     const apiKey = process.env.GEMINI_API_KEY;
