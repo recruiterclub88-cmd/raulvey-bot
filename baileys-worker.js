@@ -100,7 +100,7 @@ async function startBaileys() {
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', (update) => {
+    sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) {
             console.log('💠 [Baileys] QR-код для сканирования:');
@@ -110,6 +110,14 @@ async function startBaileys() {
         }
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+            const errorMsg = lastDisconnect?.error?.message || (lastDisconnect?.error && lastDisconnect.error.toString()) || '';
+
+            if (errorMsg.includes('Bad MAC')) {
+                console.error('🛑 Critical Connection Error: Bad MAC. Clearing auth and restarting...');
+                await supabase.from('baileys_auth').delete().eq('session_id', 'main-session');
+                process.exit(1);
+            }
+
             console.log('💠 [Baileys] Соединение закрыто. Переподключение:', shouldReconnect);
             if (shouldReconnect) {
                 setTimeout(() => startBaileys(), 5000);
@@ -261,6 +269,11 @@ async function startBaileys() {
 
             } catch (err) {
                 console.error('❌ [Baileys] Ошибка при обработке:', err);
+                if (err.message && err.message.includes('Bad MAC')) {
+                    console.error('🛑 Critical Session Error: Bad MAC in message processing. Clearing session...');
+                    await supabase.from('baileys_auth').delete().eq('session_id', 'main-session');
+                    process.exit(1); // Restart worker to force new session
+                }
             }
         }
     });
